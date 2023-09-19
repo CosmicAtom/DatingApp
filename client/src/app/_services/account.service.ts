@@ -4,6 +4,7 @@ import { map } from 'rxjs/operators';
 import { User } from '../_models/user';
 import { ReplaySubject } from 'rxjs';
 import { environment } from 'src/environments/environment.development';
+import { Member } from '../_models/member';
 
 @Injectable({
   providedIn: 'root'
@@ -28,7 +29,7 @@ export class AccountService {
     )
   }
 
-  register(model: User) {
+  register(model: Member) {
     return this.https.post(this.baseUrl + 'account/register', model).pipe(
       map((user: User) => {
         if (user) {
