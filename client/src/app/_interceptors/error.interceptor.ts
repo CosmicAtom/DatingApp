@@ -20,7 +20,6 @@ export class ErrorInterceptor implements HttpInterceptor {
         if(error){
           switch(error.status){
             case 400:
-              console.log(error);
               if(error.error.errors){
                 const modalStateErrors = [];
                 for(const key in error.error.errors){
