@@ -46,48 +46,70 @@ namespace API.Data
         {
             var query = _context.Messages
                 .OrderByDescending(x => x.MessageSent) 
+                .ProjectTo<MessageDto>(_mapper.ConfigurationProvider)
                 .AsQueryable();
 
             query = messageParams.Container switch
             {
-                "Inbox" => query.Where(u => u.Recipient.UserName == messageParams.Username  && u.RecipientDeleted == false),
-                "Outbox" => query.Where(u => u.Sender.UserName == messageParams.Username && u.SenderDeleted == false),
-                _ => query.Where(u => u.Recipient.UserName == messageParams.Username && u.RecipientDeleted == false && u.DateRead == null)
+                "Inbox" => query.Where(u => u.RecipientUsername == messageParams.Username  && u.RecipientDeleted == false),
+                "Outbox" => query.Where(u => u.SenderUsername == messageParams.Username && u.SenderDeleted == false),
+                _ => query.Where(u => u.RecipientUsername == messageParams.Username && u.RecipientDeleted == false && u.DateRead == null)
             };
 
-            var messages = query.ProjectTo<MessageDto>(_mapper.ConfigurationProvider).AsNoTracking();
 
-            return await PageList<MessageDto>.CreateAsync(messages, messageParams.PageNumber, messageParams.PageSize);
+            return await PageList<MessageDto>.CreateAsync(query, messageParams.PageNumber, messageParams.PageSize);
         }
 
         public async Task<IEnumerable<MessageDto>> GetMessagesThread(string currentUsername, string receiptUsername)
         {
             var messages = await _context.Messages
-                .Include(u => u.Sender).ThenInclude(p => p.Photos)
-                .Include(u => u.Recipient).ThenInclude(p => p.Photos)
                 .Where(m => m.Sender.UserName == currentUsername && m.RecipientDeleted == false && m.Recipient.UserName == receiptUsername
-                      || m.Sender.UserName == receiptUsername && m.SenderDeleted == false  && m.Recipient.UserName == currentUsername)
+                      || m.Sender.UserName == receiptUsername && m.SenderDeleted == false && m.Recipient.UserName == currentUsername)
                 .OrderBy(m => m.MessageSent)
+                .ProjectTo<MessageDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
 
-            var unreadMessages = messages.Where(d => d.DateRead == null && d.Recipient.UserName == currentUsername).ToList();
+            var unreadMessages = messages.Where(d => d.DateRead == null && d.RecipientUsername == currentUsername).ToList();
 
             if(unreadMessages.Any())
             {
                 foreach (var item in unreadMessages)
                 {
-                    item.DateRead = DateTime.Now;
+                    item.DateRead = DateTime.UtcNow;
                 }
-
-                await _context.SaveChangesAsync();
             }
 
             return _mapper.Map<IEnumerable<MessageDto>>(messages);
         }
 
-        public async Task<bool> SaveAllAsync()
+        public void AddGroup(Groups group)
         {
-           return await _context.SaveChangesAsync() > 0;
+            _context.Groups.Add(group);
+        }
+
+        public void RemoveConnection(Connections connection)
+        {
+            _context.Connections.Remove(connection);
+        }
+
+        public async Task<Groups> GetMessageGroup(string groupName)
+        {
+            return await _context.Groups
+                .Include(x => x.Connections)
+                .FirstOrDefaultAsync(x => x.Name == groupName);
+        }
+
+        public async Task<Connections> GetConnection(string connectionId)
+        {
+            return await _context.Connections.FindAsync(connectionId);
+        }
+
+        public async Task<Groups> GetGroupsFroConnections(string ConnectionId)
+        {
+            return await _context.Groups
+                .Include(x => x.Connections)
+                .Where(c => c.Connections.Any(x => x.ConnectionsId == ConnectionId))
+                .FirstOrDefaultAsync();
         }
     }
 }

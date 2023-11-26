@@ -11,17 +11,19 @@ import { PresenceService } from './_services/presence.service';
 })
 export class AppComponent implements OnInit {
   title = 'client';
-  users :any;
+  users: any;
 
-  constructor(private http: HttpClient, private accountService : AccountService, private presence : PresenceService){}
+  constructor(private http: HttpClient, private accountService: AccountService, private presence: PresenceService) { }
 
   ngOnInit() {
     this.setCurrentUser();
   }
 
   setCurrentUser() {
-    const user :User = JSON.parse(localStorage.getItem('user'));
-    this.accountService.setCurrentUser(user);
-    this.presence.createHubConnection(user);
-  } 
+    const user: User = JSON.parse(localStorage.getItem('user'));
+    if (user != null) {
+      this.accountService.setCurrentUser(user);
+      this.presence.createHubConnection(user);
+    }
+  }
 }

@@ -10,6 +10,7 @@ namespace API
         public static async Task Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build();
+
             using var scope = host.Services.CreateScope();
             var service = scope.ServiceProvider;
             try
@@ -31,6 +32,12 @@ namespace API
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureLogging(logbuilder =>
+                {
+                    logbuilder.ClearProviders();
+                    logbuilder.AddConsole();
+                    logbuilder.AddTraceSource("Information, ActivityTracing");
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
