@@ -15,7 +15,7 @@
 </div>
 
 <div class="row" *ngIf="messages?.length === 0">
-    <h3>No Messages</h3>
+    <h3 class="text-center">No Unread Messages</h3>
 </div>
 
 <div class="row" *ngIf="messages?.length > 0">
@@ -69,7 +69,7 @@
     </table>
 </div>
 
-<div class="d-flex justify-content-center" *ngIf="pagination && !loadingFlag">
+<div class="d-flex justify-content-center" *ngIf="pagination && (pagination?.totalItems != 0) && !loadingFlag">
     <pagination [boundaryLinks]="true" [totalItems]="pagination.totalItems" [itemsPerPage]="pagination.itemsPerPage"
         [(ngModel)]="pagination.currentPage" (pageChanged)="pageChanged($event)" previousText="&lsaquo;"
         nextText="&rsaquo;" firstText="&laquo;" lastText="&raquo;">

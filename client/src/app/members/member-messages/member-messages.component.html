@@ -1,11 +1,14 @@
 <div class="card">
     <div class="card-body">
-        <div *ngIf="messages?.length === 0">
+        <div *ngIf="(messageService.messageThread$ | async)?.length === 0">
             No messsages yet.... say hi using the message box below
         </div>
 
-        <ul *ngIf="messages?.length > 0" class="chat">
-            <li *ngFor="let item of messages">
+        <ul #scrollMe
+            style="overflow: scroll;height: 500px;"
+            [scrollTop]="scrollMe.scrollHeight"
+            *ngIf="(messageService.messageThread$ | async)?.length> 0" class="chat">
+            <li *ngFor="let item of (messageService.messageThread$ | async)">
                 <div class="row">
                     <div class="col-sm-1">
                         <span class="chat-img float-right">
@@ -17,14 +20,18 @@
                         <div class="header">
                             <small class="text-muted">
                                 <span class="fa fa-clock-o">{{ item.messageSent | timeago }}</span>
-                                <span class="text-danger" *ngIf="!item.dataRead && item.senderUsername !== username">(Unread)</span>
-                                <span class="text-success" *ngIf="item.dataRead && item.senderUsername !== username">(Read {{
-                                    item.messageSent | timeago }})</span>
+                                <span class="text-danger" *ngIf="!item.dataRead && item.senderUsername !== Username">(Unread)</span>
+                                <span class="text-success" *ngIf="item.dataRead && item.senderUsername !== Username">(Read {{  item.messageSent | timeago }})</span>
                             </small>
                         </div>
                         <p>{{ item.content }}</p>
                     </div>
                 </div>
+                <!-- <div>
+                    <span>{{ item.dataRead }}</span>
+                    -
+                    <span>{{ item.senderUsername }}</span>
+                </div> -->
             </li>
         </ul>
     </div>
